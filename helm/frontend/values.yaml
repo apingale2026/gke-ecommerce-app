@@ -1,0 +1,14 @@
+replicaCount: 2
+
+image:
+  repository: asia-south1-docker.pkg.dev/gcp-devops-project-496602/gcp-devops-project-496602-dev-repo/frontend
+  tag: "v5"
+  pullPolicy: IfNotPresent
+
+namespace: frontend
+port: 80
+minReplicas: 2
+maxReplicas: 5
+targetPort: 80
+cpu_percent: 70
+service: ClusterIP

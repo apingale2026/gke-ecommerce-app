@@ -1,0 +1,13 @@
+replicaCount: 1
+
+image:
+  repository: asia-south1-docker.pkg.dev/gcp-devops-project-496602/gcp-devops-project-496602-dev-repo/product-api
+  tag: "v3"
+
+namespace: backend
+port: 5000
+minReplicas: 1
+maxReplicas: 3
+targetPort: 5000
+cpu_percent: 65
+service: ClusterIP

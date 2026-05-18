@@ -1,0 +1,14 @@
+replicaCount: 1
+
+image:
+  repository: asia-south1-docker.pkg.dev/gcp-devops-project-496602/gcp-devops-project-496602-dev-repo/auth-service
+  tag: "v2"
+  
+
+namespace: backend
+port: 3000
+minReplicas: 1
+maxReplicas: 2
+targetPort: 3000
+cpu_percent: 70
+service: ClusterIP

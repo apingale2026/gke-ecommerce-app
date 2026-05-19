@@ -2,22 +2,6 @@
 
 A production-grade microservices e-commerce application deployed on Google Kubernetes Engine (GKE) using modern DevOps practices.
 
-![Architecture](docs/architecture.png)
-
-## 📋 Table of Contents
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Features](#features)
-- [Prerequisites](#prerequisites)
-- [Infrastructure Setup](#infrastructure-setup)
-- [Application Deployment](#application-deployment)
-- [CI/CD Pipeline](#cicd-pipeline)
-- [Monitoring](#monitoring)
-- [Environments](#environments)
-- [Screenshots](#screenshots)
-
 ---
 
 ## 📌 Overview
@@ -276,12 +260,15 @@ kubectl port-forward svc/monitoring-grafana 3000:80 -n monitoring
 # Open browser
 http://localhost:3000 (admin / password from above)
 ```
+#Screenshots
+### Application
+![App](docs/application.png)
 
-### Pre-built Dashboards
-- **Kubernetes / Compute Resources / Cluster** — overall health
-- **Kubernetes / Compute Resources / Namespace** — per namespace metrics
-- **Kubernetes / Compute Resources / Pod** — individual pod metrics
-- **Node Exporter** — host level metrics
+### CI/CD Pipeline
+![Pipeline](docs/github_action_workflow.png)
+
+### Grafana Dashboard
+![Grafana](docs/Grafana.png)
 
 ---
 

@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: asia-south1-docker.pkg.dev/gcp-devops-project-496602/gcp-devops-project-496602-dev-repo/product-api
-  tag: "v3"
+  tag: "v1"
 
 namespace: backend
 port: 5000

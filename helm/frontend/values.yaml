@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: asia-south1-docker.pkg.dev/gcp-devops-project-496602/gcp-devops-project-496602-dev-repo/frontend
-  tag: "v5"
+  tag: "v1"
   pullPolicy: IfNotPresent
 
 namespace: frontend

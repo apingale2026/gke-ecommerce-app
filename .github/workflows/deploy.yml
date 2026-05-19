@@ -5,6 +5,7 @@ on:
     branches: [ main ]
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   PROJECT_ID: gcp-devops-project-496602
   REGION: asia-south1
   REGISTRY: asia-south1-docker.pkg.dev

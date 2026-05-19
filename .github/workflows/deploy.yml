@@ -1,0 +1,103 @@
+name: Build and Deploy to GKE
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  PROJECT_ID: gcp-devops-project-496602
+  REGION: asia-south1
+  REGISTRY: asia-south1-docker.pkg.dev
+  REPOSITORY: gcp-devops-project-496602-dev-repo
+  GKE_CLUSTER: gcp-devops-project-496602-dev-gke
+  WIF_PROVIDER: projects/136499647961/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+  WIF_SA: github-actions-sa@gcp-devops-project-496602.iam.gserviceaccount.com
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write       # ← needed for Workload Identity
+
+    steps:
+
+    # Step 1 — Checkout code
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Step 2 — Authenticate to GCP via Workload Identity
+    - name: Authenticate to GCP
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: ${{ env.WIF_PROVIDER }}
+        service_account: ${{ env.WIF_SA }}
+
+    # Step 3 — Setup gcloud
+    - name: Setup gcloud
+      uses: google-github-actions/setup-gcloud@v2
+
+    # Step 4 — Configure Docker to use gcloud
+    - name: Configure Docker
+      run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+    # Step 5 — Build and push frontend
+    - name: Build and push frontend
+      run: |
+        docker build -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/frontend:${{ github.sha }} \
+          ./services/frontend
+        docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/frontend:${{ github.sha }}
+
+    # Step 6 — Build and push product-api
+    - name: Build and push product-api
+      run: |
+        docker build -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/product-api:${{ github.sha }} \
+          ./services/product-api
+        docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/product-api:${{ github.sha }}
+
+    # Step 7 — Build and push auth-service
+    - name: Build and push auth-service
+      run: |
+        docker build -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/auth-service:${{ github.sha }} \
+          ./services/auth-service
+        docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/auth-service:${{ github.sha }}
+
+    # Step 8 — Get GKE credentials
+    - name: Get GKE credentials
+      uses: google-github-actions/get-gke-credentials@v2
+      with:
+        cluster_name: ${{ env.GKE_CLUSTER }}
+        location: ${{ env.REGION }}
+
+    # Step 9 — Deploy with Helm
+    - name: Deploy frontend
+      run: |
+        helm upgrade --install frontend ./helm/frontend \
+          --namespace frontend \
+          --create-namespace \
+          --set image.repository=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/frontend \
+          --set image.tag=${{ github.sha }}
+
+    - name: Deploy product-api
+      run: |
+        helm upgrade --install product-api ./helm/product-api \
+          --namespace backend \
+          --create-namespace \
+          --set image.repository=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/product-api \
+          --set image.tag=${{ github.sha }}
+
+    - name: Deploy auth-service
+      run: |
+        helm upgrade --install auth-service ./helm/auth-service \
+          --namespace backend \
+          --set image.repository=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/auth-service \
+          --set image.tag=${{ github.sha }}
+
+    # Step 10 — Verify deployment
+    - name: Verify deployment
+      run: |
+        kubectl rollout status deployment/frontend-deployment -n frontend
+        kubectl rollout status deployment/product-api-deployment -n backend
+        kubectl rollout status deployment/auth-service-deployment -n backend
+        kubectl get pods -n frontend
+        kubectl get pods -n backend
